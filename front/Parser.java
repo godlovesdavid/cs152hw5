@@ -10,8 +10,12 @@ public class Parser
 {
 	Scanner scanner;
 	Stack<SymbolTable> scopestack;
-	List<Tree> trees;
+	List<Tree> trees; //top level function calls
 
+	/**
+	 * parses the code, puts in tree list
+	 * @param src code
+	 */
 	public void parse(String src)
 	{
 

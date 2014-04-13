@@ -5,22 +5,19 @@ import java.util.Stack;
 public class NodeIterator
 {
 	Node currentnode;
-	Stack<Node> uppernodelevels;
+	Stack<Node> savednodes;
+
+	NodeIterator(Node startingnode)
+	{
+		currentnode = startingnode;
+	}
 
 	/**
 	 * goes to next node (node connected to currentnode)
 	 */
 	public void goNext()
 	{
-
-	}
-
-	/**
-	 * goes up one level
-	 */
-	public void goUpOneLevel()
-	{
-
+		currentnode = currentnode.nextnode;
 	}
 
 	/**
@@ -28,7 +25,22 @@ public class NodeIterator
 	 */
 	public void goIntoContents()
 	{
-
+		currentnode = (Node) currentnode.contents;
 	}
 
+	/**
+	 * save position
+	 */
+	public void rememberNode()
+	{
+		savednodes.push(currentnode);
+	}
+
+	/**
+	 * load position
+	 */
+	public void backtrack()
+	{
+		currentnode = savednodes.pop();
+	}
 }
