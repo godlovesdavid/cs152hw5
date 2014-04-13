@@ -1,6 +1,7 @@
 package front;
 
 import java.util.List;
+import java.util.Queue;
 import java.util.Stack;
 
 import back.SymbolTable;
@@ -18,6 +19,18 @@ public class Parser
 	 */
 	public void parse(String src)
 	{
+		Queue<Token> tokens = scanner.tokenize(src);
+		Token token;
+		Tree tree;
+		while (!tokens.isEmpty())
+		{
+			token = tokens.poll();
+			if (token.string == "(" && scopestack.isEmpty())
+			{
+				tree = new Tree();
+				scopestack.push(globalsymbols);
+			}
 
+		}
 	}
 }

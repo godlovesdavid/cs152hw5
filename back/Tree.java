@@ -44,7 +44,7 @@ public class Tree
 	{
 		if (iterator.currentnode == null)
 		{
-			iterator.currentnode.contents = atom;
+			iterator.currentnode.contents = (Object) atom;
 		}
 		else
 		{
