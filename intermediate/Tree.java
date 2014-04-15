@@ -2,6 +2,9 @@ package back;
 
 import front.Token;
 
+/**
+represents list
+*/
 public class Tree
 {
 	Node root;

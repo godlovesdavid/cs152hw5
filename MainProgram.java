@@ -2,7 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import front.Parser;
+import frontend.Parser;
 
 public class MainProgram
 {

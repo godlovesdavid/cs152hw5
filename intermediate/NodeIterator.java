@@ -1,4 +1,4 @@
-package back;
+package intermediate;
 
 import java.util.Stack;
 
@@ -13,7 +13,7 @@ public class NodeIterator
 	}
 
 	/**
-	 * goes to next node (node connected to currentnode)
+	 * go to next node (node connected to currentnode)
 	 */
 	public void goNext()
 	{
@@ -21,7 +21,7 @@ public class NodeIterator
 	}
 
 	/**
-	 * treats the contents of this node as a node and sets its current node to it
+	 * treat the contents of this node as a node and sets its current node to it
 	 */
 	public void goIntoContents()
 	{
