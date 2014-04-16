@@ -6,12 +6,12 @@ import intermediate.Node;
 public class ContentPrinter
 {
 	/**
-	 * walk list and print code given the root node of a list, and the level of list (0 for top)
+	 * walk list and print code given the root node of a list
 	 */
-	public void printCode(Node rootnode)
+	public void printCode(Node node)
 	{
 		System.out.print("(");
-		walk(rootnode, 0);
+		walk(node, 0);
 		System.out.println();
 	}
 
@@ -20,16 +20,16 @@ public class ContentPrinter
 		//if contents is another node
 		if (node.element instanceof Node)
 		{
-			//print newline
+			//print newline.
 			System.out.print("\n");
 
-			//indent
+			//indent.
 			for (int i = 0; i < level; i++)
 				System.out.print("   ");
 
 			System.out.print("(");
 
-			//traverse node
+			//traverse node.
 			walk((Node) node.element, level + 1);
 		}
 		else
@@ -41,7 +41,7 @@ public class ContentPrinter
 		//if there's a next node
 		if (node.next != null)
 		{
-			//traverse it
+			//traverse it.
 			walk(node.next, level);
 		}
 		else
@@ -56,28 +56,16 @@ public class ContentPrinter
 	public void printTokens(Node node)
 	{
 		if (node.table != null)
-		{
 			System.out.println(node.table);
-		}
 
 		//if contents is another node
 		if (node.element instanceof Node)
-		{
-			//traverse it
+			//traverse it.
 			printTokens((Node) node.element);
-		}
-//				else	//print node element contents
-//				{
-//					if (node.element != null)
-//						System.out.println(node.element + ", type:"
-//							+ ((Token) node.element).type);
-//				}
 
 		//if there's a next node
 		if (node.next != null)
-		{
-			//traverse it
+			//traverse it.
 			printTokens(node.next);
-		}
 	}
 }

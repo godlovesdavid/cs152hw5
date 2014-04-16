@@ -8,13 +8,16 @@ public class Scanner
 	/*
 	* regular expressions
 	*/
+	//basic characters
 	static String LETTER = "[A-Za-z]";
 	static String DIGIT = "[0-9]";
 	static String UNSIGNED_INT = DIGIT + "+";
+	static String BRACKET = "[\\[\\]\\(\\)]";
+	static String QUOTE = "'";
 
+	//token types
 	static String SPECIAL_SYMBOL =
 		"[\\^+\\-\\*=<>;,\\.;:\"'#\\\\/\\(\\)\\[\\]\\{\\}]+";
-	static String BRACKET = "[\\[\\]\\(\\)]";
 	static String NUMBER = UNSIGNED_INT + "(\\." + UNSIGNED_INT + ")?";
 	static String CHARACTER = "#\\.";
 	static String STRING = "\"[^\"]+\"";
@@ -22,7 +25,8 @@ public class Scanner
 	static String WORD = LETTER + "(" + LETTER + "|" + DIGIT + "|\\-|\\?)+";
 	static String KEYWORD =
 		"and|begin|begin0|break-var|case|cond|cycle|define|delay|delay-list-cons|do|else|extend-syntax|for|freeze|if|lambda|let|letrec|let\\*|macro|object-maker|or|quote|repeat|safe-letrec|set!|stream-cons|variable-case|while|wrap";
-	static String QUOTE = "'";
+
+	//token
 	static String TOKEN = "(?<!;[^\n]{0,1000})(" + BRACKET + "|" + QUOTE
 		+ "|[^ \t\r\n;]+?(?=" + BRACKET + "| |\t|\r|\n|;|$))"; //skip comments, then match bracket, or non-delimiter characters until delimiter
 
@@ -34,7 +38,7 @@ public class Scanner
 	}
 
 	/**
-	 * give next token
+	 * give next token from where the scanner is at
 	 * @return
 	 */
 	public Token scanForNextToken()

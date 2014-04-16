@@ -21,8 +21,8 @@ public class Parser
 	Scanner scanner;
 	Stack<SymbolTable> scopestack;
 	public List<Node> listroots; //top level lists
-	ListMaker listmanager;
-	SymbolTable firstlevelsymbols;
+	ListMaker listmaker;
+	SymbolTable toplevelsymbols;
 	static SymbolTable GLOBAL_SYMBOLS;
 	static
 	{
@@ -197,8 +197,8 @@ public class Parser
 	{
 		scopestack = new Stack<SymbolTable>();
 		listroots = new ArrayList<Node>();
-		listmanager = new ListMaker();
-		firstlevelsymbols = new SymbolTable();
+		listmaker = new ListMaker();
+		toplevelsymbols = new SymbolTable();
 	}
 
 	/**
@@ -216,14 +216,14 @@ public class Parser
 		while ((token = scanner.scanForNextToken()) != null)
 		{
 			//case start of top level list
-			if (listmanager.isAtTopLevel()
+			if (listmaker.isAtTopLevel()
 				&& (token.string.equals("(") || token.string.equals("[")))
 			{	
 				scopestack.clear();
 				scopestack.push(GLOBAL_SYMBOLS);
-				scopestack.push(currenttable = firstlevelsymbols);
-				listmanager.startList(firstlevelsymbols);
-				listroots.add(listmanager.giveRoot());
+				scopestack.push(currenttable = toplevelsymbols);
+				listmaker.startList(toplevelsymbols);
+				listroots.add(listmaker.giveRoot());
 			}
 			//case not top level
 			else
@@ -233,13 +233,13 @@ public class Parser
 				{
 					scopestack.push(currenttable = new SymbolTable());
 
-					listmanager.addElement(token, currenttable);
+					listmaker.addElement(token, currenttable);
 				}
 
 				//sublist-starting
 				else if (token.string.equals("(") || token.string.equals("["))
 				{
-					listmanager.startSublist();
+					listmaker.startSublist();
 
 					if (quotemode)
 					{
@@ -249,14 +249,14 @@ public class Parser
 				//list-ending
 				else if (token.string.equals(")") || token.string.equals("]"))
 				{
-					listmanager.endList();
+					listmaker.endList();
 
 					if (quotemode)
 					{
 						quotemodeunmatchedparentheses--;
 						if (quotemodeunmatchedparentheses == 0)
 						{
-							listmanager.endList();
+							listmaker.endList();
 							quotemode = false;
 						}
 					}
@@ -266,17 +266,17 @@ public class Parser
 				{
 					quotemode = true;
 					quotemodeunmatchedparentheses = 0;
-					listmanager.startSublist();
-					listmanager.addElement(new Token("quote", "word"));
+					listmaker.startSublist();
+					listmaker.addElement(new Token("quote", "word"));
 				}
-				//add list element case
+				//list element case
 				else
 				{
-					listmanager.addElement(token);
+					listmaker.addElement(token);
 
 					if (quotemode && quotemodeunmatchedparentheses == 0)
 					{
-						listmanager.endList();
+						listmaker.endList();
 						quotemode = false;
 					}
 
