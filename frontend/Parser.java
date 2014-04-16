@@ -1,6 +1,6 @@
 package frontend;
 
-import intermediate.ListManager;
+import intermediate.ListMaker;
 import intermediate.Node;
 import intermediate.SymbolTable;
 
@@ -13,11 +13,16 @@ import java.util.regex.Pattern;
 public class Parser
 {
 	static String SCOPE_MAKERS = "lambda|let|letrec|let\\*";
+	static String ELEMENT = Scanner.WORD + "|" + Scanner.NUMBER + "|"
+		+ Scanner.BOOLEAN + "|" + Scanner.SPECIAL_SYMBOL;
+	static String LIST = "\\((" + ELEMENT + "+|(\\(" + ELEMENT + "+\\)*)?"
+		+ ")\\)";
 
 	Scanner scanner;
 	Stack<SymbolTable> scopestack;
 	public List<Node> listroots; //top level lists
-	ListManager Tree;
+	ListMaker listmanager;
+	SymbolTable firstlevelsymbols;
 	static SymbolTable GLOBAL_SYMBOLS;
 	static
 	{
@@ -78,6 +83,7 @@ public class Parser
 		GLOBAL_SYMBOLS.put("(current-input-port)", new TreeMap<String, Object>());
 		GLOBAL_SYMBOLS
 			.put("(current-output-port)", new TreeMap<String, Object>());
+		GLOBAL_SYMBOLS.put("define", new TreeMap<String, Object>());
 		GLOBAL_SYMBOLS.put("display", new TreeMap<String, Object>());
 		GLOBAL_SYMBOLS.put("(eof-object?", new TreeMap<String, Object>());
 		GLOBAL_SYMBOLS.put("(eq?", new TreeMap<String, Object>());
@@ -184,68 +190,102 @@ public class Parser
 		GLOBAL_SYMBOLS.put("write-char", new TreeMap<String, Object>());
 		GLOBAL_SYMBOLS.put("zero?", new TreeMap<String, Object>());
 	}
+	boolean quotemode;
+	int quotemodeunmatchedparentheses;
 
 	public Parser()
 	{
 		scopestack = new Stack<SymbolTable>();
 		listroots = new ArrayList<Node>();
-		Tree = new ListManager();
+		listmanager = new ListMaker();
+		firstlevelsymbols = new SymbolTable();
 	}
 
 	/**
 	 * parses the code, puts in tree list
 	 * @param file file with code
 	 */
-	public void parse(String string)
+	public void parse(String code)
 	{
-		scanner = new Scanner(string);
+		scanner = new Scanner(code);
 
 		Token token;
-		SymbolTable symboltable = null;
+		SymbolTable currenttable = null;
 
 		//for each token
 		while ((token = scanner.scanForNextToken()) != null)
 		{
-			//start of top level list
-			if (Tree.isAtTopLevel() && token.string.equals("("))
-			{
+			//case start of top level list
+			if (listmanager.isAtTopLevel()
+				&& (token.string.equals("(") || token.string.equals("[")))
+			{	
 				scopestack.clear();
 				scopestack.push(GLOBAL_SYMBOLS);
-				scopestack.push(symboltable = new SymbolTable());
-
-				Tree.startList();
-				listroots.add(Tree.root);
+				scopestack.push(currenttable = firstlevelsymbols);
+				listmanager.startList(firstlevelsymbols);
+				listroots.add(listmanager.giveRoot());
 			}
-			//not top level
+			//case not top level
 			else
 			{
-				//if token is scope making, push new symbol table
-				if (Pattern.compile(SCOPE_MAKERS).matcher(token.string).matches()
-					|| token.type.equals("keyword"))
+				//scope making--push new symbol table
+				if (Pattern.compile(SCOPE_MAKERS).matcher(token.string).matches())
 				{
-					scopestack.push(symboltable = new SymbolTable());
+					scopestack.push(currenttable = new SymbolTable());
 
-					Tree.add(token, symboltable);
+					listmanager.addElement(token, currenttable);
 				}
 
-				//start sublist
-				else if (token.string.equals("("))
+				//sublist-starting
+				else if (token.string.equals("(") || token.string.equals("["))
 				{
-					Tree.startList();
+					listmanager.startSublist();
+
+					if (quotemode)
+					{
+						quotemodeunmatchedparentheses++;
+					}
 				}
-				//end list
-				else if (token.string.equals(")"))
+				//list-ending
+				else if (token.string.equals(")") || token.string.equals("]"))
 				{
-					Tree.endList();
+					listmanager.endList();
+
+					if (quotemode)
+					{
+						quotemodeunmatchedparentheses--;
+						if (quotemodeunmatchedparentheses == 0)
+						{
+							listmanager.endList();
+							quotemode = false;
+						}
+					}
 				}
-				//add element to list
+				//quote
+				else if (token.string.equals("'"))
+				{
+					quotemode = true;
+					quotemodeunmatchedparentheses = 0;
+					listmanager.startSublist();
+					listmanager.addElement(new Token("quote", "word"));
+				}
+				//add list element case
 				else
 				{
-					Tree.add(token);
+					listmanager.addElement(token);
 
-					//put token into table if scope doesn't already contain token and token is element 
-					if (!stackContainsToken(token) && token.type.equals("element"))
-						symboltable.put(token.string, new TreeMap<String, Object>());
+					if (quotemode && quotemodeunmatchedparentheses == 0)
+					{
+						listmanager.endList();
+						quotemode = false;
+					}
+
+					//if token is a variable, add to scope
+					if (!stackContainsToken(token) && token.type != "keyword"
+						&& (token.type == "word" || token.type == "specialsymbol"))
+					{
+						currenttable.put(token.string, new TreeMap<String, Object>());
+					}
 				}
 			}
 			//print token

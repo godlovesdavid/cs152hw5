@@ -1,7 +1,10 @@
+import intermediate.Node;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import backend.ContentPrinter;
 import frontend.Parser;
 
 public class MainProgram
@@ -14,34 +17,40 @@ public class MainProgram
 	{
 		Parser parser = new Parser();
 		parser.parse(readFileAsString(args[0]));
+
+		ContentPrinter contentprinter = new ContentPrinter();
+		for (Node node : parser.listroots)
+		{
+			System.out.println();
+			contentprinter.printCode(node);
+			System.out.println("\nScope symbol tables:");
+			contentprinter.printTokens(node);
+		}
 	}
 
 	/**
 	 * read file and return its contents as string
-	 * @param filePath path of file
-	 * @return contents of file
+	 * @param filepath path of file
+	 * @return contents of file as string
 	 */
-	static String readFileAsString(String filePath)
+	static String readFileAsString(String filepath)
 	{
-		StringBuffer fileData = new StringBuffer();
+		StringBuffer data = new StringBuffer();
 		BufferedReader reader;
 		try
 		{
-			reader = new BufferedReader(new FileReader(filePath));
+			reader = new BufferedReader(new FileReader(filepath));
 
-			char[] buf = new char[1024];
-			int numRead = 0;
-			while ((numRead = reader.read(buf)) != -1)
-			{
-				String readData = String.valueOf(buf, 0, numRead);
-				fileData.append(readData);
-			}
+			char[] buffer = new char[1024];
+			int numread = 0;
+			while ((numread = reader.read(buffer)) != -1)
+				data.append(String.valueOf(buffer, 0, numread));
 			reader.close();
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
-		return fileData.toString();
+		return data.toString();
 	}
 }

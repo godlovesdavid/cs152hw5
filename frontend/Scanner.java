@@ -8,34 +8,29 @@ public class Scanner
 	/*
 	* regular expressions
 	*/
-	String letter = "[A-Za-z]";
-	String digit = "[0-9]";
+	static String LETTER = "[A-Za-z]";
+	static String DIGIT = "[0-9]";
+	static String UNSIGNED_INT = DIGIT + "+";
 
-	String unsignedint = digit + "+";
-	String number = unsignedint + "(\\." + unsignedint + ")?";
-	String character = "#\\.";
-	String string = "\"[^\"]+\"";
-	String bool = "#[tf]";
-	String word = letter + "(" + letter + "|" + digit + "|\\-|\\?)+";
-	String specialsymbol = "[\\(\\)\\[\\]\\{\\};,\\.\"\'#\\\\]";
-	String operator =
-		"(\\+|\\-|\\*|/|=|<|<=|=|>=|>|>>=|<<=|\\.|,|:|\\(|\\)|\\[|\\]|\\{|\\}|'|\")";
-	String element = word + "|" + number + "|" + bool + "|" + specialsymbol;
-	String list = "\\((" + element + "*|(\\(" + element + "*\\))?" + ")\\)";
-	String keyword =
-		"and|begin|begin0|break-var|case|cond|cycle|define|delay|delay-list-cons|do|else|extend-syntax|for|freeze|if|lambda|let|letrec|let*|macro|object-maker|or|quote|repeat|safe-letrec|set!|stream-cons|variable-case|while|wrap";
-	String comment = ";.*?\r?\n";
-	String token = "(?<!;[^\n]{0,1000})(" + operator + "|[^ \t\r\n;]+?(?="
-		+ specialsymbol + "| |\t|\r|\n|;|$))"; //operator or (not space/CR/LF/comment symbol)+ until (space/CR/LF/comment symbol)
-	//	String tokendelimiter = //comment or space/tab/newline or ending a symbol or starting a symbol
-	//		comment + "|( |\t|\r|\n)+|(?<=" + specialsymbol + ")(?!" + specialsymbol
-	//			+ ")|(?<!" + specialsymbol + ")(?=" + specialsymbol + ")";
+	static String SPECIAL_SYMBOL =
+		"[\\^+\\-\\*=<>;,\\.;:\"'#\\\\/\\(\\)\\[\\]\\{\\}]+";
+	static String BRACKET = "[\\[\\]\\(\\)]";
+	static String NUMBER = UNSIGNED_INT + "(\\." + UNSIGNED_INT + ")?";
+	static String CHARACTER = "#\\.";
+	static String STRING = "\"[^\"]+\"";
+	static String BOOLEAN = "#[tTfF]";
+	static String WORD = LETTER + "(" + LETTER + "|" + DIGIT + "|\\-|\\?)+";
+	static String KEYWORD =
+		"and|begin|begin0|break-var|case|cond|cycle|define|delay|delay-list-cons|do|else|extend-syntax|for|freeze|if|lambda|let|letrec|let\\*|macro|object-maker|or|quote|repeat|safe-letrec|set!|stream-cons|variable-case|while|wrap";
+	static String QUOTE = "'";
+	static String TOKEN = "(?<!;[^\n]{0,1000})(" + BRACKET + "|" + QUOTE
+		+ "|[^ \t\r\n;]+?(?=" + BRACKET + "| |\t|\r|\n|;|$))"; //skip comments, then match bracket, or non-delimiter characters until delimiter
 
 	Matcher matcher;
 
 	public Scanner(String sourcecode)
 	{
-		matcher = Pattern.compile(token).matcher(sourcecode);
+		matcher = Pattern.compile(TOKEN).matcher(sourcecode);
 	}
 
 	/**
@@ -49,24 +44,20 @@ public class Scanner
 
 		String tokenstring = matcher.group();
 		String type = null;
-		if (Pattern.compile(unsignedint).matcher(tokenstring).matches())
-			type = "unsignedint";
-		else if (Pattern.compile(number).matcher(tokenstring).matches())
-			type = "number";
-		else if (Pattern.compile(character).matcher(tokenstring).matches())
-			type = "character";
-		else if (Pattern.compile(string).matcher(tokenstring).matches())
-			type = "string";
-		else if (Pattern.compile(bool).matcher(tokenstring).matches())
-			type = "bool";
-		else if (Pattern.compile(operator).matcher(tokenstring).matches())
-			type = "operator";
-		else if (Pattern.compile(list).matcher(tokenstring).matches())
-			type = "list";
-		else if (Pattern.compile(keyword).matcher(tokenstring).matches())
+		if (Pattern.compile(SPECIAL_SYMBOL).matcher(tokenstring).matches())
+			type = "specialsymbol";
+		else if (Pattern.compile(KEYWORD).matcher(tokenstring).matches())
 			type = "keyword";
-		else if (Pattern.compile(element).matcher(tokenstring).matches())
-			type = "element";
+		else if (Pattern.compile(WORD).matcher(tokenstring).matches())
+			type = "word";
+		else if (Pattern.compile(NUMBER).matcher(tokenstring).matches())
+			type = "number";
+		else if (Pattern.compile(BOOLEAN).matcher(tokenstring).matches())
+			type = "bool";
+		else if (Pattern.compile(CHARACTER).matcher(tokenstring).matches())
+			type = "character";
+		else if (Pattern.compile(STRING).matcher(tokenstring).matches())
+			type = "string";
 		else
 			type = "unknown";
 

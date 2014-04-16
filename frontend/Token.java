@@ -2,12 +2,23 @@ package frontend;
 
 public class Token
 {
-	String type; //keyword, special character, number, boolean, element, etc.
-	String string;
+	public String string;
+	public String type; //can be keyword, string, number, boolean, element, etc.
 
-	Token(String type, String string)
+	Token(String string, String type)
 	{
-		this.type = type;
 		this.string = string;
+		this.type = type;
+	}
+
+	public String toString()
+	{
+		return string;
+	}
+	
+	public boolean equals(Object obj)
+	{
+		Token other = (Token) obj;
+		return string == other.string && type == other.type;
 	}
 }

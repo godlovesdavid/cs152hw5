@@ -1,13 +1,10 @@
 package intermediate;
 
-/**
-* node containing list element
-*/
 public class Node
 {
-	Object element; //can be Node or Token
-	Node nextnode;
-	SymbolTable symboltable;
+	public Object element; //can be Node or Token
+	public Node next;
+	public SymbolTable table;
 
 	public Node()
 	{
@@ -17,5 +14,10 @@ public class Node
 	public Node(Object element)
 	{
 		this.element = element;
+	}
+
+	public String toString()
+	{
+		return element.toString();
 	}
 }

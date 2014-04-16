@@ -22,3 +22,5 @@
       ((null? poly) '())
       (else (cons (upto '+ poly) (terminize (after '+ poly))))
       )))
+
+	  
