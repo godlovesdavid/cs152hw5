@@ -20,7 +20,7 @@ public class MainProgram
 		parser.parse(readFileAsString(args[0]));
 
 		ContentPrinter contentprinter = new ContentPrinter();
-		for (Node node : parser.listroots)
+		for (Node node : parser.listrootnodes)
 		{
 			System.out.println();
 			contentprinter.printCode(node);

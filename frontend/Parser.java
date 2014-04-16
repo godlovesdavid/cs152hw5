@@ -7,188 +7,188 @@ import intermediate.SymbolTable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.TreeMap;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 public class Parser
 {
 	static String SCOPE_MAKERS = "lambda|let|letrec|let\\*";
-	static String ELEMENT = Scanner.WORD + "|" + Scanner.NUMBER + "|"
-		+ Scanner.BOOLEAN + "|" + Scanner.SPECIAL_SYMBOL;
-	static String LIST = "\\((" + ELEMENT + "+|(\\(" + ELEMENT + "+\\)*)?"
-		+ ")\\)";
+	//	static String ELEMENT = Scanner.WORD + "|" + Scanner.NUMBER + "|"
+	//		+ Scanner.BOOLEAN + "|" + Scanner.SPECIAL_SYMBOL;
+	//	static String LIST = "\\((" + ELEMENT + "+|(\\(" + ELEMENT + "+\\)*)?"
+	//		+ ")\\)";
 
 	Scanner scanner;
 	Stack<SymbolTable> scopestack;
-	public List<Node> listroots; //top level lists
+	public List<Node> listrootnodes; //top level list root nodes
 	ListMaker listmaker;
 	SymbolTable toplevelsymbols;
 	static SymbolTable GLOBAL_SYMBOLS;
 	static
 	{
 		GLOBAL_SYMBOLS = new SymbolTable();
-		GLOBAL_SYMBOLS.put("exact->inexact", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("inexact->exact", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("*", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("+", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("-", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("/", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("<", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("<=x", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("=", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put(">", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put(">=", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("abs", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("acos", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("append", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("apply", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("asin", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("assoc", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("assq", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("assv", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("atan", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("boolean?", new TreeMap<String, Object>());
+		GLOBAL_SYMBOLS.put("exact->inexact", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("inexact->exact", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("*", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("+", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("-", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("/", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("<", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("<=x", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("=", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put(">", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put(">=", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("abs", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("acos", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("append", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("apply", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("asin", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("assoc", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("assq", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("assv", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("atan", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("boolean?", new HashMap<String, Object>());
 		GLOBAL_SYMBOLS.put("call-with-current-continuation",
-			new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("call-with-input-file", new TreeMap<String, Object>());
+			new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("call-with-input-file", new HashMap<String, Object>());
 		GLOBAL_SYMBOLS
-			.put("call-with-output-file", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("car", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("cdr", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("ceiling", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char->integer", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-alphabetic?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(char-ci<=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-ci", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-ci=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-ci>=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-ci>?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-downcase", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-lower-case?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-numeric?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-upcase", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-upper-case?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char-whitespace?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(char<=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char>=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char>?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("char?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("close-input-port", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("close-output-port", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("complex?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("cons", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("cos", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(current-input-port)", new TreeMap<String, Object>());
+			.put("call-with-output-file", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("car", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("cdr", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("ceiling", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char->integer", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-alphabetic?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(char-ci<=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-ci", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-ci=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-ci>=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-ci>?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-downcase", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-lower-case?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-numeric?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-upcase", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-upper-case?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char-whitespace?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(char<=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char>=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char>?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("char?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("close-input-port", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("close-output-port", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("complex?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("cons", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("cos", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(current-input-port)", new HashMap<String, Object>());
 		GLOBAL_SYMBOLS
-			.put("(current-output-port)", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("define", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("display", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(eof-object?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(eq?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("equal?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(eqv?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(eval", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("even?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(exact?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("exp", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("expt", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("floor", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("for-each", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("force", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("gcd", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(inexact?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(input-port?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(integer->char", new TreeMap<String, Object>());
+			.put("(current-output-port)", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("define", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("display", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(eof-object?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(eq?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("equal?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(eqv?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(eval", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("even?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(exact?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("exp", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("expt", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("floor", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("for-each", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("force", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("gcd", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(inexact?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(input-port?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(integer->char", new HashMap<String, Object>());
 		GLOBAL_SYMBOLS.put("interaction-environment",
-			new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("integer?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("lcm", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("length", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("list", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(list->string", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(list->vector", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("(list-ref", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("list-tailL", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("list?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("load", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("log", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("macroexpand", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("make-string", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("make-vector", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("map", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("max", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("member?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("memq", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("memv", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("min", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("modulo", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("negative?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("newline)", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("not", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("null-environment", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("null?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("number->string", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("number?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("odd?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("open-input-file", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("open-output-file", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("output-port?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("pair?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("peek-char", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("positive?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("procedure?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("quotient", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("rational?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("read", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("read-char", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("real?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("remainder", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("reverse", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("round", new TreeMap<String, Object>());
+			new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("integer?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("lcm", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("length", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("list", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(list->string", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(list->vector", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("(list-ref", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("list-tailL", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("list?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("load", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("log", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("macroexpand", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("make-string", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("make-vector", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("map", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("max", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("member?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("memq", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("memv", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("min", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("modulo", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("negative?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("newline)", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("not", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("null-environment", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("null?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("number->string", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("number?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("odd?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("open-input-file", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("open-output-file", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("output-port?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("pair?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("peek-char", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("positive?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("procedure?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("quotient", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("rational?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("read", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("read-char", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("real?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("remainder", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("reverse", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("round", new HashMap<String, Object>());
 		GLOBAL_SYMBOLS.put("scheme-report-environment",
-			new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("set-car!", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("set-cdr!", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("sin", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("sqrt", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string->list", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string->number", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string->symbol", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-append", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-ci<=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-ci", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-ci=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-ci>=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-ci>?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-copy", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-fill!", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-length", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-ref", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string-set!", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string<=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string>=?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string>?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("string?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("substring", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("symbol->string", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("symbol?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("tan", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("truncate", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("vector", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("vector->list", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("vector-fill!", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("vector-length", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("vector-ref", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("vector-set!", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("vector?", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("write", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("write-char", new TreeMap<String, Object>());
-		GLOBAL_SYMBOLS.put("zero?", new TreeMap<String, Object>());
+			new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("set-car!", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("set-cdr!", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("sin", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("sqrt", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string->list", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string->number", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string->symbol", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-append", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-ci<=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-ci", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-ci=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-ci>=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-ci>?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-copy", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-fill!", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-length", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-ref", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string-set!", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string<=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string>=?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string>?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("string?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("substring", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("symbol->string", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("symbol?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("tan", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("truncate", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("vector", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("vector->list", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("vector-fill!", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("vector-length", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("vector-ref", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("vector-set!", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("vector?", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("write", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("write-char", new HashMap<String, Object>());
+		GLOBAL_SYMBOLS.put("zero?", new HashMap<String, Object>());
 	}
 	boolean quotemode;
 	int quotemodeunmatchedparentheses;
@@ -196,7 +196,7 @@ public class Parser
 	public Parser()
 	{
 		scopestack = new Stack<SymbolTable>();
-		listroots = new ArrayList<Node>();
+		listrootnodes = new ArrayList<Node>();
 		listmaker = new ListMaker();
 		toplevelsymbols = new SymbolTable();
 	}
@@ -216,14 +216,13 @@ public class Parser
 		while ((token = scanner.scanForNextToken()) != null)
 		{
 			//case start of top level list
-			if (listmaker.isAtTopLevel()
-				&& (token.string.equals("(") || token.string.equals("[")))
-			{	
+			if (listmaker.isAtTopLevel() && isOpenParenthesis(token))
+			{
 				scopestack.clear();
 				scopestack.push(GLOBAL_SYMBOLS);
 				scopestack.push(currenttable = toplevelsymbols);
 				listmaker.startList(toplevelsymbols);
-				listroots.add(listmaker.giveRoot());
+				listrootnodes.add(listmaker.giveRoot());
 			}
 			//case not top level
 			else
@@ -237,7 +236,7 @@ public class Parser
 				}
 
 				//sublist-starting
-				else if (token.string.equals("(") || token.string.equals("["))
+				else if (isOpenParenthesis(token))
 				{
 					listmaker.startSublist();
 
@@ -247,7 +246,7 @@ public class Parser
 					}
 				}
 				//list-ending
-				else if (token.string.equals(")") || token.string.equals("]"))
+				else if (isClosedParenthesis(token))
 				{
 					listmaker.endList();
 
@@ -280,17 +279,28 @@ public class Parser
 						quotemode = false;
 					}
 
-					//if token is a variable, add to scope
-					if (!stackContainsToken(token) && token.type != "keyword"
-						&& (token.type == "word" || token.type == "specialsymbol"))
+					//if token is symbol, add to scope
+					if (!stackContainsToken(token) && token.type == "symbol")
 					{
-						currenttable.put(token.string, new TreeMap<String, Object>());
+						currenttable.put(token.string, new HashMap<String, Object>());
 					}
 				}
 			}
 			//print token
 			System.out.println(token.string + "\t\t\t" + token.type);
 		}
+	}
+
+	boolean isOpenParenthesis(Token token)
+	{
+		return token.string.equals("(") || token.string.equals("[")
+			|| token.string.equals("{");
+	}
+
+	boolean isClosedParenthesis(Token token)
+	{
+		return token.string.equals(")") || token.string.equals("]")
+			|| token.string.equals("}");
 	}
 
 	/**

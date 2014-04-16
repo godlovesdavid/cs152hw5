@@ -16,8 +16,8 @@ public class Scanner
 	static String QUOTE = "'";
 
 	//token types
-	static String SPECIAL_SYMBOL =
-		"[\\^+\\-\\*=<>;,\\.;:\"'#\\\\/\\(\\)\\[\\]\\{\\}]+";
+	static String SYMBOL = "[a-zA-Z\\+\\-\\.\\*\\/<=>!?:\\$%_&~^]+";
+	static String SPECIAL_SYMBOL = "[\\(\\)\\[\\]\\{\\};,\\.\"'#\\\\]+";
 	static String NUMBER = UNSIGNED_INT + "(\\." + UNSIGNED_INT + ")?";
 	static String CHARACTER = "#\\.";
 	static String STRING = "\"[^\"]+\"";
@@ -50,6 +50,8 @@ public class Scanner
 		String type = null;
 		if (Pattern.compile(SPECIAL_SYMBOL).matcher(tokenstring).matches())
 			type = "specialsymbol";
+		else if (Pattern.compile(SYMBOL).matcher(tokenstring).matches())
+			type = "symbol";
 		else if (Pattern.compile(KEYWORD).matcher(tokenstring).matches())
 			type = "keyword";
 		else if (Pattern.compile(WORD).matcher(tokenstring).matches())
@@ -57,7 +59,7 @@ public class Scanner
 		else if (Pattern.compile(NUMBER).matcher(tokenstring).matches())
 			type = "number";
 		else if (Pattern.compile(BOOLEAN).matcher(tokenstring).matches())
-			type = "bool";
+			type = "boolean";
 		else if (Pattern.compile(CHARACTER).matcher(tokenstring).matches())
 			type = "character";
 		else if (Pattern.compile(STRING).matcher(tokenstring).matches())
