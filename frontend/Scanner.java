@@ -8,7 +8,7 @@ public class Scanner
 	/*
 	* regular expressions
 	*/
-	//basic characters
+	//basic
 	static String LETTER = "[A-Za-z]";
 	static String DIGIT = "[0-9]";
 	static String UNSIGNED_INT = DIGIT + "+";
@@ -26,7 +26,7 @@ public class Scanner
 	static String KEYWORD =
 		"and|begin|begin0|break-var|case|cond|cycle|define|delay|delay-list-cons|do|else|extend-syntax|for|freeze|if|lambda|let|letrec|let\\*|macro|object-maker|or|quote|repeat|safe-letrec|set!|stream-cons|variable-case|while|wrap";
 
-	//token
+	//a token
 	static String TOKEN = "(?<!;[^\n]{0,1000})(" + BRACKET + "|" + QUOTE
 		+ "|[^ \t\r\n;]+?(?=" + BRACKET + "| |\t|\r|\n|;|$))"; //skip comments, then match bracket, or non-delimiter characters until delimiter
 

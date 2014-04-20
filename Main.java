@@ -8,7 +8,7 @@ import frontend.Parser;
 public class Main
 {
 	/**
-	 * runs program, calling parser to parse all content and then and calls content printer to print contents.
+	 * run program, calling parser to parse all code and then executor.
 	 * @param args first argument being the name of file to read in
 	 * @throws IOException 
 	 */

@@ -1,10 +1,9 @@
 package backend;
 
+import intermediate.Node;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import frontend.Token;
-import intermediate.Node;
 
 public class Executor
 {
@@ -19,16 +18,6 @@ public class Executor
 			System.out.println("\nScope:");
 			Executor.printTokens(node);
 		}
-	}
-
-	/**
-	 * walk list and print code given the root node of a list
-	 */
-	public static void printCode(Node node)
-	{
-		System.out.print("(");
-		walk(node, 0);
-		System.out.println();
 	}
 
 	public static void walk(Node node, int level)
@@ -64,6 +53,16 @@ public class Executor
 		{
 			System.out.print(")");
 		}
+	}
+
+	/**
+	 * walk list and print code given the root node of a list
+	 */
+	public static void printCode(Node node)
+	{
+		System.out.print("(");
+		walk(node, 0);
+		System.out.println();
 	}
 
 	/**

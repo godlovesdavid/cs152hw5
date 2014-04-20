@@ -12,17 +12,10 @@ public class Parser
 	/*
 	 * regular expressions
 	 */
-	static String SCOPE_MAKERS = "lambda|let|letrec|let\\*";
-	static String ELEMENT = Scanner.WORD + "|" + Scanner.NUMBER + "|"
-		+ Scanner.BOOLEAN + "|" + Scanner.SPECIAL_SYMBOL;
-	static String LIST = "\\((" + ELEMENT + "+|(\\(" + ELEMENT + "+\\)*)?"
-		+ ")\\)";
-
-	/*
-	 * quote mode
-	 */
-	boolean quotemode;
-	int unmatched;
+	//	static String ELEMENT = Scanner.WORD + "|" + Scanner.NUMBER + "|"
+	//		+ Scanner.BOOLEAN + "|" + Scanner.SPECIAL_SYMBOL;
+	//	static String LIST = "\\((" + ELEMENT + "+|(\\(" + ELEMENT + "+\\)*)?"
+	//		+ ")\\)";
 
 	public Parser()
 	{
@@ -30,7 +23,7 @@ public class Parser
 	}
 
 	/**
-	 * parse code, put in root node list
+	 * parse code, put in lists
 	 * @param file file with code
 	 */
 	public void parse(String code)
@@ -67,6 +60,7 @@ public class Parser
 
 	boolean isScopeMaking(Token token)
 	{
-		return Pattern.compile(SCOPE_MAKERS).matcher(token.string).matches();
+		return Pattern.compile("lambda|let|letrec|let\\*").matcher(token.string)
+			.matches();
 	}
 }
