@@ -1,13 +1,11 @@
-import intermediate.Node;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import backend.ContentPrinter;
+import backend.Executor;
 import frontend.Parser;
 
-public class MainProgram
+public class Main
 {
 	/**
 	 * runs program, calling parser to parse all content and then and calls content printer to print contents.
@@ -16,17 +14,8 @@ public class MainProgram
 	 */
 	public static void main(String[] args) throws IOException
 	{
-		Parser parser = new Parser();
-		parser.parse(readFileAsString(args[0]));
-
-		ContentPrinter contentprinter = new ContentPrinter();
-		for (Node node : parser.listrootnodes)
-		{
-			System.out.println();
-			contentprinter.printCode(node);
-			System.out.println("\nScope symbol tables:");
-			contentprinter.printTokens(node);
-		}
+		new Parser().parse(readFileAsString(args[0]));
+		Executor.execute();
 	}
 
 	/**
@@ -38,8 +27,7 @@ public class MainProgram
 	static String readFileAsString(String filepath) throws IOException
 	{
 		StringBuffer data = new StringBuffer();
-		BufferedReader reader;
-		reader = new BufferedReader(new FileReader(filepath));
+		BufferedReader reader = new BufferedReader(new FileReader(filepath));
 		char[] buffer = new char[1024];
 		int numread = 0;
 		while ((numread = reader.read(buffer)) != -1)

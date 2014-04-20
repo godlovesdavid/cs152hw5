@@ -14,15 +14,15 @@ public class Scanner
 	static String UNSIGNED_INT = DIGIT + "+";
 	static String BRACKET = "[\\[\\]\\(\\)]";
 	static String QUOTE = "'";
+	static String WORD = LETTER + "(" + LETTER + "|" + DIGIT + "|\\-|\\?)+";
 
 	//token types
 	static String SYMBOL = "[a-zA-Z\\+\\-\\.\\*\\/<=>!?:\\$%_&~^]+";
-	static String SPECIAL_SYMBOL = "[\\(\\)\\[\\]\\{\\};,\\.\"'#\\\\]+";
+	static String SPECIAL_SYMBOL = "[\\(\\)\\[\\]\\{\\};,\\.\"'#\\\\]";
 	static String NUMBER = UNSIGNED_INT + "(\\." + UNSIGNED_INT + ")?";
 	static String CHARACTER = "#\\.";
 	static String STRING = "\"[^\"]+\"";
 	static String BOOLEAN = "#[tTfF]";
-	static String WORD = LETTER + "(" + LETTER + "|" + DIGIT + "|\\-|\\?)+";
 	static String KEYWORD =
 		"and|begin|begin0|break-var|case|cond|cycle|define|delay|delay-list-cons|do|else|extend-syntax|for|freeze|if|lambda|let|letrec|let\\*|macro|object-maker|or|quote|repeat|safe-letrec|set!|stream-cons|variable-case|while|wrap";
 
@@ -50,10 +50,10 @@ public class Scanner
 		String type = null;
 		if (Pattern.compile(SPECIAL_SYMBOL).matcher(tokenstring).matches())
 			type = "specialsymbol";
-		else if (Pattern.compile(SYMBOL).matcher(tokenstring).matches())
-			type = "symbol";
 		else if (Pattern.compile(KEYWORD).matcher(tokenstring).matches())
 			type = "keyword";
+		else if (Pattern.compile(SYMBOL).matcher(tokenstring).matches())
+			type = "symbol";
 		else if (Pattern.compile(WORD).matcher(tokenstring).matches())
 			type = "word";
 		else if (Pattern.compile(NUMBER).matcher(tokenstring).matches())

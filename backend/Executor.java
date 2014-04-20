@@ -1,14 +1,30 @@
 package backend;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import frontend.Token;
 import intermediate.Node;
 
-public class ContentPrinter
+public class Executor
 {
+	public static List<Node> headnodes = new ArrayList<Node>();  //top level list root nodes
+
+	public static void execute()
+	{
+		for (Node node : headnodes)
+		{
+			System.out.println();
+			Executor.printCode(node);
+			System.out.println("\nScope:");
+			Executor.printTokens(node);
+		}
+	}
+
 	/**
 	 * walk list and print code given the root node of a list
 	 */
-	public void printCode(Node node)
+	public static void printCode(Node node)
 	{
 		System.out.print("(");
 		walk(node, 0);
@@ -17,7 +33,7 @@ public class ContentPrinter
 
 	public static void walk(Node node, int level)
 	{
-		//if contents is another node
+		//element is another node?
 		if (node.element instanceof Node)
 		{
 			//print newline.
@@ -25,7 +41,7 @@ public class ContentPrinter
 
 			//indent.
 			for (int i = 0; i < level; i++)
-				System.out.print("   ");
+				System.out.print("    ");
 
 			System.out.print("(");
 
@@ -38,7 +54,7 @@ public class ContentPrinter
 				System.out.print(node.element + " ");
 		}
 
-		//if there's a next node
+		//there's a next node?
 		if (node.next != null)
 		{
 			//traverse it.
@@ -53,17 +69,17 @@ public class ContentPrinter
 	/**
 	 * walk list and print tokens given root node
 	 */
-	public void printTokens(Node node)
+	public static void printTokens(Node node)
 	{
 		if (node.table != null)
 			System.out.println(node.table);
 
-		//if contents is another node
+		//element is another node?
 		if (node.element instanceof Node)
 			//traverse it.
 			printTokens((Node) node.element);
 
-		//if there's a next node
+		//there's a next node?
 		if (node.next != null)
 			//traverse it.
 			printTokens(node.next);
